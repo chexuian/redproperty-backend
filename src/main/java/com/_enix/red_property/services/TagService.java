@@ -9,8 +9,12 @@ import com._enix.red_property.repositories.FacilityRepository;
 import com._enix.red_property.repositories.TagRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -33,10 +37,22 @@ public class TagService {
     public TagDto getTagDtoById(String id){
         Tag tag = getTagById(id);
 
+        return mapTagToTagDto(tag);
+    }
+
+    public TagDto mapTagToTagDto(Tag tag){
         return TagDto.builder()
                 .id(tag.getId())
                 .name(tag.getName())
                 .build();
+    }
+
+    public Page<TagDto> getAllTags(Pageable pageable, String q){
+        SpecService<Tag> specService = SpecService.from(Tag.class);
+        Specification<Tag> spec = specService.getSpec(q);
+
+        Page<Tag> facilityPage = tagRepository.findAll(spec, pageable);
+        return facilityPage.map(this::mapTagToTagDto);
     }
 
     public TagDto createTag(TagDto tagDto) {
@@ -51,6 +67,22 @@ public class TagService {
                 .id(tag.getId())
                 .name(tag.getName())
                 .build();
+    }
+
+    public TagDto updateTag(TagDto tagDto) {
+        Tag tag = getTagById(tagDto.getId());
+        tag.setName(tagDto.getName());
+
+        tag = tagRepository.save(tag);
+
+        return mapTagToTagDto(tag);
+    }
+
+    public void deleteTag(String id) {
+        Tag tag = getTagById(id);
+        tag.setDeletedAt(new Date());
+
+        tagRepository.save(tag);
     }
 
     public List<Tag> getTagsByDto(List<TagDto> dtos) {
