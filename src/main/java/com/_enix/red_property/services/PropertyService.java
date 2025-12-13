@@ -7,8 +7,12 @@ import com._enix.red_property.enums.PropertyAvailabilityStatus;
 import com._enix.red_property.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -147,6 +151,14 @@ public class PropertyService {
                 .build();
     }
 
+    public Page<PropertyDto> getAllProperties(Pageable pageable, String q){
+        SpecService<Property> specService = SpecService.from(Property.class);
+        Specification<Property> spec = specService.getSpec(q);
+
+        Page<Property> propertyPage = propertyRepository.findAll(spec, pageable);
+        return propertyPage.map(this::mapPropertyToPropertyDto);
+    }
+
     public PropertyDto createProperty(PropertyDto propertyDto) {
         Agent agent = userService.getAgentById(propertyDto.getAgentId());
         PropertyCategory category = getPropertyCategoryById(propertyDto.getCategory().getId());
@@ -207,6 +219,79 @@ public class PropertyService {
         property = propertyRepository.save(property);
 
         return mapPropertyToPropertyDto(property);
+    }
+
+    public PropertyDto updateProperty(PropertyDto propertyDto) {
+
+        Property property = getPropertyById(propertyDto.getId());
+
+        Agent agent = userService.getAgentById(propertyDto.getAgentId());
+        PropertyCategory category = getPropertyCategoryById(propertyDto.getCategory().getId());
+        PropertyType type = getPropertyTypeById(propertyDto.getType().getId());
+
+        List<Amenity> amenities = amenityService.getAmenitiesByDto(propertyDto.getAmenities());
+        List<Facility> facilities = facilityService.getFacilitiesByDto(propertyDto.getFacilities());
+        List<Tag> tags = tagService.getTagsByDto(propertyDto.getTags());
+
+        property.setName(propertyDto.getName());
+        property.setDescription(propertyDto.getDescription());
+        property.setCategory(category);
+        property.setType(type);
+        property.setAddress(propertyDto.getAddress());
+        property.setCity(propertyDto.getCity());
+        property.setState(propertyDto.getState());
+        property.setCountry(propertyDto.getCountry());
+        property.setPrice(propertyDto.getPrice());
+        property.setBedrooms(propertyDto.getBedrooms());
+        property.setBathrooms(propertyDto.getBathrooms());
+        property.setCarparks(propertyDto.getCarparks());
+        property.setBuiltYear(propertyDto.getBuiltYear());
+        property.setFloorLevel(propertyDto.getFloorLevel());
+        property.setAreaSqft(propertyDto.getAreaSqft());
+        property.setListingType(propertyDto.getListingType());
+        property.setStatus(propertyDto.getStatus());
+        property.setAgent(agent);
+        property.setAmenities(amenities);
+        property.setFacilities(facilities);
+        property.setTags(tags);
+
+
+        // Map PropertyImageDto to PropertyImage entity
+        if (propertyDto.getImages() != null && !propertyDto.getImages().isEmpty()) {
+            List<PropertyImage> images = propertyDto.getImages().stream()
+                    .map(imgDto -> PropertyImage.builder()
+                            .imageUrl(imgDto.getImageUrl())
+                            .imageOrder(imgDto.getImageOrder())
+                            .build())
+                    .collect(Collectors.toList());
+            property.getImages().clear();
+            property.getImages().addAll(images);
+        }
+
+        if (propertyDto.getFaqs() == null || propertyDto.getFaqs().isEmpty()){
+            property.getFaqs().clear();
+        } else {
+            List<PropertyFAQ> faqs = propertyDto.getFaqs().stream()
+                    .map(dto -> PropertyFAQ.builder()
+                            .question(dto.getQuestion())
+                            .answer(dto.getAnswer())
+                            .orderNo(dto.getOrderNo())
+                            .build())
+                    .collect(Collectors.toList());
+            property.getFaqs().clear();
+            property.getFaqs().addAll(faqs);
+        }
+
+        // Save property (will cascade to images)
+        property = propertyRepository.save(property);
+
+        return mapPropertyToPropertyDto(property);
+    }
+
+    public void deleteProperty(String id){
+        Property property = getPropertyById(id);
+        property.setDeletedAt(new Date());
+        propertyRepository.save(property);
     }
 
     public PropertyCategory getPropertyCategoryById(String id){
