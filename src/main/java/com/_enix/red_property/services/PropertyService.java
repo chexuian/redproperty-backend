@@ -142,7 +142,7 @@ public class PropertyService {
                 .areaSqft(property.getAreaSqft())
                 .listingType(property.getListingType())
                 .status(property.getStatus())
-                .agentId(property.getAgent().getId())
+                .agent(userService.mapAgentToAgentDto(property.getAgent()))
                 .images(getPropertyImagesDtoByProperty(property))
                 .amenities(getAmenityDtosByProperty(property))
                 .facilities(getFacilityDtosByProperty(property))
@@ -160,7 +160,7 @@ public class PropertyService {
     }
 
     public PropertyDto createProperty(PropertyDto propertyDto) {
-        Agent agent = userService.getAgentById(propertyDto.getAgentId());
+        Agent agent = userService.getAgentById(propertyDto.getAgent().getId());
         PropertyCategory category = getPropertyCategoryById(propertyDto.getCategory().getId());
         PropertyType type = getPropertyTypeById(propertyDto.getType().getId());
 
@@ -225,7 +225,7 @@ public class PropertyService {
 
         Property property = getPropertyById(propertyDto.getId());
 
-        Agent agent = userService.getAgentById(propertyDto.getAgentId());
+        Agent agent = userService.getAgentById(propertyDto.getAgent().getId());
         PropertyCategory category = getPropertyCategoryById(propertyDto.getCategory().getId());
         PropertyType type = getPropertyTypeById(propertyDto.getType().getId());
 

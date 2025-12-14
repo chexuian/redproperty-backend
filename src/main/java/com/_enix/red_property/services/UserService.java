@@ -2,6 +2,7 @@ package com._enix.red_property.services;
 
 
 import com._enix.red_property.dtos.AdminDto;
+import com._enix.red_property.dtos.AgencyDto;
 import com._enix.red_property.dtos.AgentDto;
 import com._enix.red_property.dtos.UserDto;
 import com._enix.red_property.entities.Admin;
@@ -187,4 +188,27 @@ public class UserService {
                 .verified(agent.isVerified())
                 .build();
     }
+
+    public AgentDto mapAgentToAgentDto(Agent agent) {
+        return AgentDto.builder()
+                .id(agent.getUser().getId())
+                .name(agent.getUser().getName())
+                .email(agent.getUser().getEmail())
+                .contactNo(agent.getUser().getContactNo())
+                .profilePic(agent.getUser().getProfilePic())
+                .agency(AgencyDto.builder()
+                        .id(agent.getAgency().getId())
+                        .name(agent.getAgency().getName())
+                        .address(agent.getAgency().getAddress())
+                        .city(agent.getAgency().getCity())
+                        .state(agent.getAgency().getState())
+                        .country(agent.getAgency().getCountry())
+                        .contactNo(agent.getAgency().getContactNo())
+                        .build())
+                .licenseNumber(agent.getLicenseNumber())
+                .bio(agent.getBio())
+                .verified(agent.isVerified())
+                .build();
+    }
+
 }

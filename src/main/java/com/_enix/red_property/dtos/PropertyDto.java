@@ -36,7 +36,7 @@ public class PropertyDto {
     private BigDecimal areaSqft;
     private PropertyListingType listingType;
     private PropertyAvailabilityStatus status;
-    private String agentId;
+    private AgentDto agent;
     private List<PropertyImageDto> images;
     private List<AmenityDto> amenities;
     private List<FacilityDto> facilities;
