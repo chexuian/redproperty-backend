@@ -8,10 +8,10 @@ spring:
       hibernate:
         format_sql: true
   datasource:
-    url: jdbc:postgresql://localhost:5433/redproperty
+    url: jdbc:postgresql://localhost:5434/redproperty
     username: postgres
     password: root
   flyway:
-    enabled: false
+    enabled: true
 server:
   port: 8081
