@@ -1,18 +1,10 @@
 package com._enix.red_property.services;
 
 
-import com._enix.red_property.dtos.AmenityDto;
-import com._enix.red_property.dtos.SubscriptionFeatureDto;
-import com._enix.red_property.dtos.SubscriptionPlanDto;
-import com._enix.red_property.dtos.SubscriptionPlanFeatureDto;
-import com._enix.red_property.entities.Amenity;
-import com._enix.red_property.entities.SubscriptionFeature;
-import com._enix.red_property.entities.SubscriptionPlan;
-import com._enix.red_property.entities.SubscriptionPlanFeature;
-import com._enix.red_property.repositories.AmenityRepository;
-import com._enix.red_property.repositories.SubscriptionFeatureRepository;
-import com._enix.red_property.repositories.SubscriptionPlanFeatureRepository;
-import com._enix.red_property.repositories.SubscriptionPlanRepository;
+import com._enix.red_property.dtos.*;
+import com._enix.red_property.entities.*;
+import com._enix.red_property.enums.SubscriptionStatus;
+import com._enix.red_property.repositories.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +25,8 @@ public class SubscriptionService {
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final SubscriptionFeatureRepository subscriptionFeatureRepository;
     private final SubscriptionPlanFeatureRepository subscriptionPlanFeatureRepository;
+    private final UserService userService;
+    private final AgentSubscriptionRepository agentSubscriptionRepository;
 
 //    public Amenity getAmenityById(String id){
 //        return amenityRepository.findByIdAndDeletedAtIsNull(id).orElseThrow(
@@ -89,6 +84,51 @@ public class SubscriptionService {
 
         Page<SubscriptionPlanFeature> subscriptionPlanFeaturePage = subscriptionPlanFeatureRepository.findAll(spec, pageable);
         return subscriptionPlanFeaturePage.map(this::mapSubscriptionPlanFeatureToDto);
+    }
+
+    public AgentSubscriptionDto createAgentAndSubscribe(AgentSubscriptionDto agentSubscriptionDto) {
+        AgentDto agentDto = userService.createAgent(agentSubscriptionDto.getAgent());
+        Agent agent = userService.getAgentById(agentDto.getId());
+
+        SubscriptionPlan plan = subscriptionPlanRepository.findById(agentSubscriptionDto.getSubscriptionPlan().getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Subscription plan not found")
+                );
+
+        Date startDate = new Date();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(startDate);
+        calendar.add(Calendar.DAY_OF_MONTH, plan.getDurationDays());
+        Date endDate = calendar.getTime();
+
+        // 4. Create AgentSubscription
+        AgentSubscription agentSubscription = AgentSubscription.builder()
+                .agent(agent)
+                .subscriptionPlan(plan)
+                .startDate(startDate)
+                .endDate(endDate)
+                .status(SubscriptionStatus.ACTIVE)
+                .build();
+
+        // 5. Save subscription
+        agentSubscription = agentSubscriptionRepository.save(agentSubscription);
+        return mapAgentSubscriptionToAgentSubscriptionDto(agentSubscription);
+    }
+
+    public AgentSubscriptionDto mapAgentSubscriptionToAgentSubscriptionDto(AgentSubscription agentSubscription) {
+        if (agentSubscription == null) {
+            return null;
+        }
+
+        return AgentSubscriptionDto.builder()
+                .id(agentSubscription.getId())
+                .agent(userService.mapAgentToAgentDto(agentSubscription.getAgent()))
+                .subscriptionPlan(mapSubscriptionPlanToDto(agentSubscription.getSubscriptionPlan()))
+                .startDate(agentSubscription.getStartDate())
+                .endDate(agentSubscription.getEndDate())
+                .status(agentSubscription.getStatus())
+                .build();
     }
 
 //    public AmenityDto createAmenity(AmenityDto amenityDto) {

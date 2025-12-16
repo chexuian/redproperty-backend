@@ -3,7 +3,9 @@ package com._enix.red_property.controllers;
 
 import com._enix.red_property.dtos.AdminDto;
 import com._enix.red_property.dtos.AgentDto;
+import com._enix.red_property.dtos.AgentSubscriptionDto;
 import com._enix.red_property.dtos.UserDto;
+import com._enix.red_property.services.SubscriptionService;
 import com._enix.red_property.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final SubscriptionService subscriptionService;
 
     @GetMapping("/user/{userId}")
     public UserDto getUserById(@PathVariable("userId") String userId){
@@ -50,9 +53,14 @@ public class UserController {
         return userService.createAdmin(adminDto);
     }
 
+//    @PostMapping("/create-agent")
+//    public AgentDto createAgent(@RequestBody AgentDto agentDto){
+//        return userService.createAgent(agentDto);
+//    }
+
     @PostMapping("/create-agent")
-    public AgentDto createAgent(@RequestBody AgentDto agentDto){
-        return userService.createAgent(agentDto);
+    public AgentSubscriptionDto createAgentAndSubscribe(@RequestBody AgentSubscriptionDto agentSubscriptionDto){
+        return subscriptionService.createAgentAndSubscribe(agentSubscriptionDto);
     }
 
 //    @PutMapping

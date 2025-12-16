@@ -16,9 +16,7 @@ import org.hibernate.annotations.UuidGenerator;
 public class Agent extends Auditable {
 
     @Id
-    @Column(name = "id")
-    @GeneratedValue(generator = "uuid")
-    @UuidGenerator
+    @Column(name = "user_id")
     private String id;
 
     @OneToOne

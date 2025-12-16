@@ -211,4 +211,16 @@ public class UserService {
                 .build();
     }
 
+    public AgencyDto mapAgencyToAgencyDto(Agency agency) {
+        return AgencyDto.builder()
+                .id(agency.getId())
+                .name(agency.getName())
+                .address(agency.getAddress())
+                .city(agency.getCity())
+                .state(agency.getState())
+                .country(agency.getCountry())
+                .contactNo(agency.getContactNo())
+                .build();
+    }
+
 }
